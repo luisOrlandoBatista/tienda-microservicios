@@ -1,0 +1,19 @@
+# Compilados de Maven
+target/
+
+# Logs
+*.log
+
+# Editores
+.vscode/
+.idea/
+*.iml
+
+# macOS
+.DS_Store
+
+# Variables de entorno con secretos (nunca se suben)
+.env
+
+# Generado por Spring Initializr
+HELP.md
