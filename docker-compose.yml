@@ -1,0 +1,15 @@
+services:
+  catalogo-db:
+    image: postgres:18
+    container_name: tienda-catalogo-db
+    environment:
+      POSTGRES_DB: catalogo
+      POSTGRES_USER: catalogo
+      POSTGRES_PASSWORD: catalogo
+    ports:
+      - "5433:5432"            # puerto de tu Mac : puerto dentro del contenedor
+    volumes:
+      - catalogo-db-data:/var/lib/postgresql   # los datos sobreviven aunque pares el contenedor
+
+volumes:
+  catalogo-db-data:

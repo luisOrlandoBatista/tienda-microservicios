@@ -1,3 +1,20 @@
+server:
+  port: 8081                      # cada microservicio tendrá su puerto: catálogo 8081
+
 spring:
   application:
     name: catalogo-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/catalogo
+    username: catalogo
+    password: catalogo
+
+  jpa:
+    hibernate:
+      ddl-auto: validate          # Hibernate NO crea tablas: solo comprueba que coinciden
+    open-in-view: false           # buena práctica: la sesión de BD no llega hasta el controlador
+
+logging:
+  level:
+    org.hibernate.SQL: debug      # muestra en consola las SQL que ejecuta Hibernate
