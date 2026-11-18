@@ -14,6 +14,9 @@ import com.tienda.catalogo.domain.model.Producto;
 
 import java.util.List;
 
+import org.springframework.transaction.annotation.Transactional;
+
+@Transactional 
 public class ProductoService implements CrearProductoUseCase, ConsultarProductoUseCase,
         ActualizarProductoUseCase, EliminarProductoUseCase, ReducirStockUseCase {
 
@@ -31,12 +34,14 @@ public class ProductoService implements CrearProductoUseCase, ConsultarProductoU
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Producto obtenerPorId(Long id) {
         return productoRepository.buscarPorId(id)
                 .orElseThrow(() -> new ProductoNoEncontradoException(id));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Producto> listar() {
         return productoRepository.buscarTodos();
     }
