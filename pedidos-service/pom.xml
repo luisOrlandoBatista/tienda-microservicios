@@ -38,6 +38,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
+		<!-- Spring Boot 4: la autoconfiguración de WebClient.Builder vive en su propio starter -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webclient</artifactId>
+		</dependency>
 
 		<!-- R2DBC: acceso REACTIVO a la base de datos (sustituye a JPA) -->
 		<dependency>
