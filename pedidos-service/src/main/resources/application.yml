@@ -1,0 +1,26 @@
+server:
+  port: 8082                         # pedidos: 8082 (catálogo es 8081)
+
+spring:
+  application:
+    name: pedidos-service
+
+  # Conexión REACTIVA que usa la aplicación
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5434/pedidos
+    username: pedidos
+    password: pedidos
+
+  # Conexión JDBC que usa SOLO Flyway al arrancar
+  flyway:
+    url: jdbc:postgresql://localhost:5434/pedidos
+    user: pedidos
+    password: pedidos
+
+# Dirección del microservicio de catálogo
+catalogo:
+  url: http://localhost:8081
+
+logging:
+  level:
+    org.springframework.r2dbc: debug     # muestra las SQL que ejecuta R2DBC

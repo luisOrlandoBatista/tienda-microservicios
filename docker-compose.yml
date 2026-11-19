@@ -11,5 +11,19 @@ services:
     volumes:
       - catalogo-db-data:/var/lib/postgresql   # los datos sobreviven aunque pares el contenedor
 
+  pedidos-db:                              # NUEVO
+    image: postgres:18
+    container_name: tienda-pedidos-db
+    environment:
+      POSTGRES_DB: pedidos
+      POSTGRES_USER: pedidos
+      POSTGRES_PASSWORD: pedidos
+    ports:
+      - "5434:5432"
+    volumes:
+      - pedidos-db-data:/var/lib/postgresql
+
+
 volumes:
   catalogo-db-data:
+  pedidos-db-data:
