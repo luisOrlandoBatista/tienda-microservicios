@@ -1,0 +1,22 @@
+server:
+  port: 8083                        # auth: 8083
+
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: jdbc:postgresql://localhost:5435/auth
+    username: auth
+    password: auth
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+auth:
+  jwt:
+    emisor: http://localhost:8083        # "iss" del token: quién lo emitió
+    duracion: PT1H                       # validez del token: 1 hora (formato ISO-8601)
+  admin:
+    username: admin
+    password: ${ADMIN_PASSWORD:admin12345}

@@ -23,7 +23,19 @@ services:
     volumes:
       - pedidos-db-data:/var/lib/postgresql
 
+  auth-db:
+    image: postgres:18
+    container_name: tienda-auth-db
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: auth
+      POSTGRES_PASSWORD: auth
+    ports:
+      - "5435:5432"
+    volumes:
+      - auth-db-data:/var/lib/postgresql
 
 volumes:
   catalogo-db-data:
   pedidos-db-data:
+  auth-db-data:
