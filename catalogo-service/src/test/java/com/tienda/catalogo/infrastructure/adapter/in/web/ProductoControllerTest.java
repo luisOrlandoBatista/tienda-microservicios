@@ -1,6 +1,7 @@
 package com.tienda.catalogo.infrastructure.adapter.in.web;
 
 import com.tienda.catalogo.application.port.in.ActualizarProductoUseCase;
+import com.tienda.catalogo.application.port.in.AumentarStockUseCase;
 import com.tienda.catalogo.application.port.in.ConsultarProductoUseCase;
 import com.tienda.catalogo.application.port.in.CrearProductoCommand;
 import com.tienda.catalogo.application.port.in.CrearProductoUseCase;
@@ -38,6 +39,7 @@ class ProductoControllerTest {
     @MockitoBean private ActualizarProductoUseCase actualizarProductoUseCase;
     @MockitoBean private EliminarProductoUseCase eliminarProductoUseCase;
     @MockitoBean private ReducirStockUseCase reducirStockUseCase;
+    @MockitoBean private AumentarStockUseCase aumentarStockUseCase;
 
     @Test
     void crear_devuelve_201_con_la_cabecera_location() throws Exception {

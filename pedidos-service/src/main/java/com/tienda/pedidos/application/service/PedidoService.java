@@ -1,5 +1,6 @@
 package com.tienda.pedidos.application.service;
 
+import com.tienda.pedidos.application.port.in.CancelarPedidoUseCase;
 import com.tienda.pedidos.application.port.in.ConsultarPedidoUseCase;
 import com.tienda.pedidos.application.port.in.CrearPedidoCommand;
 import com.tienda.pedidos.application.port.in.CrearPedidoUseCase;
@@ -14,7 +15,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Transactional
-public class PedidoService implements CrearPedidoUseCase, ConsultarPedidoUseCase {
+public class PedidoService implements CrearPedidoUseCase, ConsultarPedidoUseCase, CancelarPedidoUseCase {
 
     private final PedidoRepositoryPort pedidoRepository;
     private final CatalogoPort catalogo;
@@ -54,5 +55,18 @@ public class PedidoService implements CrearPedidoUseCase, ConsultarPedidoUseCase
     @Transactional(readOnly = true)
     public Flux<Pedido> listar() {
         return pedidoRepository.buscarTodos();
+    }
+
+    @Override
+    public Mono<Pedido> cancelar(Long id) {
+        return obtenerPorId(id)                                     // 1. buscar (404 si no existe)
+                .map(pedido -> {
+                    pedido.cancelar();                              // 2. el DOMINIO valida y cambia el estado
+                    return pedido;
+                })
+                .flatMap(pedido -> Flux.fromIterable(pedido.getLineas())   // 3. devolver el stock de cada línea
+                        .concatMap(l -> catalogo.aumentarStock(l.productoId(), l.cantidad()))
+                        .then(Mono.just(pedido)))
+                .flatMap(pedidoRepository::guardar);                // 4. guardar el pedido cancelado
     }
 }

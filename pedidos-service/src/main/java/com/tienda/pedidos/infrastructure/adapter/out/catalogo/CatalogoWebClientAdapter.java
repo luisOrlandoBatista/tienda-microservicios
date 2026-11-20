@@ -57,6 +57,22 @@ public class CatalogoWebClientAdapter implements CatalogoPort {
                         ex -> new CatalogoNoDisponibleException("No se pudo reducir el stock en el catálogo", ex));
     }
 
+    @Override
+    public Mono<Void> aumentarStock(Long productoId, int cantidad) {
+        return webClient.post()
+                .uri("/api/productos/{id}/aumentar-stock", productoId)
+                .bodyValue(Map.of("cantidad", cantidad))
+                .retrieve()
+                .onStatus(status -> status.value() == 404,
+                        respuesta -> Mono.error(new ProductoNoDisponibleException(productoId, "no existe")))
+                .toBodilessEntity()
+                .then()
+                .timeout(TIMEOUT)
+                // SIN retry: igual que reducir, aumentar NO es idempotente
+                .onErrorMap(this::esErrorTecnico,
+                        ex -> new CatalogoNoDisponibleException("No se pudo devolver el stock al catálogo", ex));
+    }
+
     /** Error técnico = cualquier cosa que no sea una respuesta de negocio (caída, timeout, 5xx…). */
     private boolean esErrorTecnico(Throwable ex) {
         return !(ex instanceof ProductoNoDisponibleException);

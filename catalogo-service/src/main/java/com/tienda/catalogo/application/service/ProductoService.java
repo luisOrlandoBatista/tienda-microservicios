@@ -2,6 +2,7 @@ package com.tienda.catalogo.application.service;
 
 import com.tienda.catalogo.application.port.in.ActualizarProductoCommand;
 import com.tienda.catalogo.application.port.in.ActualizarProductoUseCase;
+import com.tienda.catalogo.application.port.in.AumentarStockUseCase;
 import com.tienda.catalogo.application.port.in.ConsultarProductoUseCase;
 import com.tienda.catalogo.application.port.in.CrearProductoCommand;
 import com.tienda.catalogo.application.port.in.CrearProductoUseCase;
@@ -18,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional 
 public class ProductoService implements CrearProductoUseCase, ConsultarProductoUseCase,
-        ActualizarProductoUseCase, EliminarProductoUseCase, ReducirStockUseCase {
+        ActualizarProductoUseCase, EliminarProductoUseCase, ReducirStockUseCase, AumentarStockUseCase {
 
     private final ProductoRepositoryPort productoRepository;
 
@@ -64,5 +65,12 @@ public class ProductoService implements CrearProductoUseCase, ConsultarProductoU
         Producto producto = obtenerPorId(id);
         producto.reducirStock(cantidad);
         return productoRepository.guardar(producto);
+    }
+
+    @Override
+    public Producto aumentarStock(Long id, int cantidad) {
+        Producto producto = obtenerPorId(id);   // 1. buscar (404 si no existe)
+        producto.aumentarStock(cantidad);       // 2. el dominio aplica la regla
+        return productoRepository.guardar(producto);  // 3. guardar
     }
 }

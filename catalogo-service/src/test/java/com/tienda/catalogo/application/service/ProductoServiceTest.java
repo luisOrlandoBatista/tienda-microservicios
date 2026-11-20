@@ -73,4 +73,15 @@ class ProductoServiceTest {
                 .isInstanceOf(ProductoNoEncontradoException.class);
         verify(productoRepository, never()).eliminar(any());
     }
+
+    @Test
+    void aumentar_stock_guarda_el_producto_con_el_stock_sumado() {
+        Producto teclado = Producto.reconstruir(1L, "Teclado", null, Precio.de("49.99"), 10);
+        when(productoRepository.buscarPorId(1L)).thenReturn(Optional.of(teclado));
+        when(productoRepository.guardar(teclado)).thenReturn(teclado);
+
+        Producto resultado = productoService.aumentarStock(1L, 5);
+
+        assertThat(resultado.getStock()).isEqualTo(15);
+    }
 }

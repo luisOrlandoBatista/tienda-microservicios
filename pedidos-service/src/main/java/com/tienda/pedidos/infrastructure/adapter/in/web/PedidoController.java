@@ -1,5 +1,6 @@
 package com.tienda.pedidos.infrastructure.adapter.in.web;
 
+import com.tienda.pedidos.application.port.in.CancelarPedidoUseCase;
 import com.tienda.pedidos.application.port.in.ConsultarPedidoUseCase;
 import com.tienda.pedidos.application.port.in.CrearPedidoUseCase;
 import com.tienda.pedidos.infrastructure.adapter.in.web.dto.CrearPedidoRequest;
@@ -24,11 +25,14 @@ public class PedidoController {
 
     private final CrearPedidoUseCase crearPedidoUseCase;
     private final ConsultarPedidoUseCase consultarPedidoUseCase;
+    private final CancelarPedidoUseCase cancelarPedidoUseCase;
 
     public PedidoController(CrearPedidoUseCase crearPedidoUseCase,
-                            ConsultarPedidoUseCase consultarPedidoUseCase) {
+                            ConsultarPedidoUseCase consultarPedidoUseCase,
+                            CancelarPedidoUseCase cancelarPedidoUseCase) {
         this.crearPedidoUseCase = crearPedidoUseCase;
         this.consultarPedidoUseCase = consultarPedidoUseCase;
+        this.cancelarPedidoUseCase = cancelarPedidoUseCase;
     }
 
     @PostMapping
@@ -48,6 +52,12 @@ public class PedidoController {
     @GetMapping
     public Flux<PedidoResponse> listar() {
         return consultarPedidoUseCase.listar()
+                .map(PedidoWebMapper::toResponse);
+    }
+
+    @PostMapping("/{id}/cancelar")
+    public Mono<PedidoResponse> cancelar(@PathVariable Long id) {
+        return cancelarPedidoUseCase.cancelar(id)
                 .map(PedidoWebMapper::toResponse);
     }
 }
