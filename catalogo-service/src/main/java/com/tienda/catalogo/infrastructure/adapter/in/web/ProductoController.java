@@ -1,12 +1,14 @@
 package com.tienda.catalogo.infrastructure.adapter.in.web;
 
 import com.tienda.catalogo.application.port.in.ActualizarProductoUseCase;
+import com.tienda.catalogo.application.port.in.AumentarStockUseCase;
 import com.tienda.catalogo.application.port.in.ConsultarProductoUseCase;
 import com.tienda.catalogo.application.port.in.CrearProductoUseCase;
 import com.tienda.catalogo.application.port.in.EliminarProductoUseCase;
 import com.tienda.catalogo.application.port.in.ReducirStockUseCase;
 import com.tienda.catalogo.domain.model.Producto;
 import com.tienda.catalogo.infrastructure.adapter.in.web.dto.ActualizarProductoRequest;
+import com.tienda.catalogo.infrastructure.adapter.in.web.dto.AumentarStockRequest;
 import com.tienda.catalogo.infrastructure.adapter.in.web.dto.CrearProductoRequest;
 import com.tienda.catalogo.infrastructure.adapter.in.web.dto.ProductoResponse;
 import com.tienda.catalogo.infrastructure.adapter.in.web.dto.ReducirStockRequest;
@@ -37,17 +39,20 @@ public class ProductoController {
     private final ActualizarProductoUseCase actualizarProductoUseCase;
     private final EliminarProductoUseCase eliminarProductoUseCase;
     private final ReducirStockUseCase reducirStockUseCase;
+    private final AumentarStockUseCase aumentarStockUseCase;
 
     public ProductoController(CrearProductoUseCase crearProductoUseCase,
                               ConsultarProductoUseCase consultarProductoUseCase,
                               ActualizarProductoUseCase actualizarProductoUseCase,
                               EliminarProductoUseCase eliminarProductoUseCase,
-                              ReducirStockUseCase reducirStockUseCase) {
+                              ReducirStockUseCase reducirStockUseCase,
+                              AumentarStockUseCase aumentarStockUseCase) {
         this.crearProductoUseCase = crearProductoUseCase;
         this.consultarProductoUseCase = consultarProductoUseCase;
         this.actualizarProductoUseCase = actualizarProductoUseCase;
         this.eliminarProductoUseCase = eliminarProductoUseCase;
         this.reducirStockUseCase = reducirStockUseCase;
+        this.aumentarStockUseCase = aumentarStockUseCase;
     }
 
     @PostMapping
@@ -89,5 +94,11 @@ public class ProductoController {
     public ProductoResponse reducirStock(@PathVariable Long id,
                                          @Valid @RequestBody ReducirStockRequest request) {
         return ProductoWebMapper.toResponse(reducirStockUseCase.reducirStock(id, request.cantidad()));
+    }
+
+    @PostMapping("/{id}/aumentar-stock")
+    public ProductoResponse aumentarStock(@PathVariable Long id,
+                                          @Valid @RequestBody AumentarStockRequest request) {
+        return ProductoWebMapper.toResponse(aumentarStockUseCase.aumentarStock(id, request.cantidad()));
     }
 }
