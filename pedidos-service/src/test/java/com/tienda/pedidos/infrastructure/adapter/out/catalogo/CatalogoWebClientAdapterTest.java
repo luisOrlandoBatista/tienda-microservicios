@@ -13,6 +13,9 @@ import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -95,5 +98,24 @@ class CatalogoWebClientAdapterTest {
                 .verify();
 
         assertThat(llamadas.get()).isEqualTo(1);   // ¡solo 1! reducir stock no es idempotente
+    }
+    
+    @Test
+    void reenvia_a_catalogo_el_token_del_usuario_que_hace_el_pedido() {
+        var adapter = adapterQueResponde(HttpStatus.OK,
+                """
+                {"id": 1, "nombre": "Teclado", "precio": 49.99, "stock": 10}
+                """);
+        Jwt tokenDeLuis = Jwt.withTokenValue("token-de-luis").header("alg", "RS256").subject("luis").build();
+
+        StepVerifier.create(adapter.obtenerProducto(1L)
+                        // simula que la petición llegó con el token de luis (el contexto de Reactor)
+                        .contextWrite(ReactiveSecurityContextHolder.withAuthentication(
+                                new JwtAuthenticationToken(tokenDeLuis))))
+                .expectNextCount(1)
+                .verifyComplete();
+
+        assertThat(ultimaPeticion.headers().getFirst(HttpHeaders.AUTHORIZATION))
+                .isEqualTo("Bearer token-de-luis");
     }
 }
