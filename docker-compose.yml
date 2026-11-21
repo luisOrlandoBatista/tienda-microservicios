@@ -1,27 +1,8 @@
 services:
-  catalogo-db:
-    image: postgres:18
-    container_name: tienda-catalogo-db
-    environment:
-      POSTGRES_DB: catalogo
-      POSTGRES_USER: catalogo
-      POSTGRES_PASSWORD: catalogo
-    ports:
-      - "5433:5432"            # puerto de tu Mac : puerto dentro del contenedor
-    volumes:
-      - catalogo-db-data:/var/lib/postgresql   # los datos sobreviven aunque pares el contenedor
 
-  pedidos-db:                              # NUEVO
-    image: postgres:18
-    container_name: tienda-pedidos-db
-    environment:
-      POSTGRES_DB: pedidos
-      POSTGRES_USER: pedidos
-      POSTGRES_PASSWORD: pedidos
-    ports:
-      - "5434:5432"
-    volumes:
-      - pedidos-db-data:/var/lib/postgresql
+  # =====================================================
+  #                  BASES DE DATOS
+  # =====================================================
 
   auth-db:
     image: postgres:18
@@ -34,8 +15,89 @@ services:
       - "5435:5432"
     volumes:
       - auth-db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth -d auth"]
+      interval: 5s
+      retries: 10
+
+  catalogo-db:
+    image: postgres:18
+    container_name: tienda-catalogo-db
+    environment:
+      POSTGRES_DB: catalogo
+      POSTGRES_USER: catalogo
+      POSTGRES_PASSWORD: catalogo
+    ports:
+      - "5433:5432"
+    volumes:
+      - catalogo-db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalogo -d catalogo"]
+      interval: 5s
+      retries: 10
+
+  pedidos-db:
+    image: postgres:18
+    container_name: tienda-pedidos-db
+    environment:
+      POSTGRES_DB: pedidos
+      POSTGRES_USER: pedidos
+      POSTGRES_PASSWORD: pedidos
+    ports:
+      - "5434:5432"
+    volumes:
+      - pedidos-db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pedidos -d pedidos"]
+      interval: 5s
+      retries: 10
+
+  # =====================================================
+  #                  MICROSERVICIOS
+  # =====================================================
+
+  auth-service:
+    build: ./auth-service
+    container_name: tienda-auth-service
+    profiles: ["apps"]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin12345}
+    ports:
+      - "8083:8083"
+    depends_on:
+      auth-db:
+        condition: service_healthy
+
+  catalogo-service:
+    build: ./catalogo-service
+    container_name: tienda-catalogo-service
+    profiles: ["apps"]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8081:8081"
+    depends_on:
+      catalogo-db:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+
+  pedidos-service:
+    build: ./pedidos-service
+    container_name: tienda-pedidos-service
+    profiles: ["apps"]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8082:8082"
+    depends_on:
+      pedidos-db:
+        condition: service_healthy
+      catalogo-service:
+        condition: service_started
 
 volumes:
+  auth-db-data:
   catalogo-db-data:
   pedidos-db-data:
-  auth-db-data:

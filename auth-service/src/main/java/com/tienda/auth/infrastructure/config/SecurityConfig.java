@@ -23,7 +23,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/auth/registro", "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/.well-known/jwks.json").permitAll()
-                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/error", "/actuator/health/**").permitAll()   // ← NUEVO: health público
                         .anyRequest().denyAll())
                 .build();
     }
