@@ -97,6 +97,23 @@ services:
       catalogo-service:
         condition: service_started
 
+  
+  gateway-service:
+    build: ./gateway-service
+    container_name: tienda-gateway-service
+    profiles: ["apps"]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+    depends_on:
+      auth-service:
+        condition: service_started
+      catalogo-service:
+        condition: service_started
+      pedidos-service:
+        condition: service_started
+
 volumes:
   auth-db-data:
   catalogo-db-data:
