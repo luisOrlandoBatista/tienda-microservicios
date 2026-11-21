@@ -17,6 +17,15 @@ spring:
     user: pedidos
     password: pedidos
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8083/.well-known/jwks.json
+          issuer-uri: http://localhost:8083
+          authorities-claim-name: roles
+          authority-prefix: ROLE_
+
 # Dirección del microservicio de catálogo
 catalogo:
   url: http://localhost:8081
