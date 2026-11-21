@@ -11,12 +11,19 @@ import com.tienda.catalogo.domain.exception.ProductoNoEncontradoException;
 import com.tienda.catalogo.domain.exception.StockInsuficienteException;
 import com.tienda.catalogo.domain.model.Precio;
 import com.tienda.catalogo.domain.model.Producto;
+import com.tienda.catalogo.infrastructure.config.SecurityConfig;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
 import static org.hamcrest.Matchers.endsWith;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ProductoController.class)
+@Import(SecurityConfig.class)
 class ProductoControllerTest {
 
     @Autowired
@@ -41,12 +49,18 @@ class ProductoControllerTest {
     @MockitoBean private ReducirStockUseCase reducirStockUseCase;
     @MockitoBean private AumentarStockUseCase aumentarStockUseCase;
 
+    @MockitoBean private JwtDecoder jwtDecoder;   // evita que el test intente descargar claves de auth-service
+
+    private static final SimpleGrantedAuthority ADMIN = new SimpleGrantedAuthority("ROLE_ADMIN");
+    private static final SimpleGrantedAuthority USER = new SimpleGrantedAuthority("ROLE_USER");
+
     @Test
     void crear_devuelve_201_con_la_cabecera_location() throws Exception {
         when(crearProductoUseCase.crear(any(CrearProductoCommand.class)))
                 .thenReturn(Producto.reconstruir(1L, "Teclado", null, Precio.de("49.99"), 10));
 
         mockMvc.perform(post("/api/productos")
+                        .with(jwt().authorities(ADMIN)) 
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"nombre": "Teclado", "precio": 49.99, "stock": 10}
@@ -69,6 +83,7 @@ class ProductoControllerTest {
     @Test
     void crear_con_datos_invalidos_devuelve_400_con_los_campos_erroneos() throws Exception {
         mockMvc.perform(post("/api/productos")
+                        .with(jwt().authorities(ADMIN)) 
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"nombre": "", "precio": -5}
@@ -85,10 +100,32 @@ class ProductoControllerTest {
                 .thenThrow(new StockInsuficienteException(1L, 10, 100));
 
         mockMvc.perform(post("/api/productos/1/reducir-stock")
+                        .with(jwt().authorities(ADMIN)) 
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"cantidad": 100}
                                 """))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void crear_sin_token_devuelve_401() throws Exception {
+        mockMvc.perform(post("/api/productos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nombre": "Teclado", "precio": 49.99, "stock": 10}
+                                """))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void crear_con_un_usuario_que_no_es_admin_devuelve_403() throws Exception {
+        mockMvc.perform(post("/api/productos")
+                        .with(jwt().authorities(USER))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nombre": "Teclado", "precio": 49.99, "stock": 10}
+                                """))
+                .andExpect(status().isForbidden());
     }
 }
