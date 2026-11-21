@@ -27,3 +27,13 @@ spring:
 logging:
   level:
     org.hibernate.SQL: debug      # muestra en consola las SQL que ejecuta Hibernate
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true

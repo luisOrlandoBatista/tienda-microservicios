@@ -20,8 +20,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sesion -> sesion.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Documentación y página de error: públicas
-                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/error").permitAll()
+                        // Documentación, página de error y health: públicos
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/error",
+                                "/actuator/health/**").permitAll()                   // ← NUEVO: health público
                         // Consultar el catálogo: público
                         .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
                         // Mover stock: cualquier usuario autenticado (lo usa pedidos-service)

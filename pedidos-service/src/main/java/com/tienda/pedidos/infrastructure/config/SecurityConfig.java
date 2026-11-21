@@ -17,11 +17,11 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())  // sin sesiones
+                .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(reglas -> reglas
-                        .pathMatchers("/error").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/pedidos").hasRole("ADMIN")   // listar TODOS: solo admin
-                        .pathMatchers("/api/pedidos/**").authenticated()                  // el resto: con token
+                        .pathMatchers("/error", "/actuator/health/**").permitAll()   // ← NUEVO: health público
+                        .pathMatchers(HttpMethod.GET, "/api/pedidos").hasRole("ADMIN")
+                        .pathMatchers("/api/pedidos/**").authenticated()
                         .anyExchange().denyAll())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .build();

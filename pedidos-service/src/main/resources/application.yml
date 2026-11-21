@@ -33,3 +33,13 @@ catalogo:
 logging:
   level:
     org.springframework.r2dbc: debug     # muestra las SQL que ejecuta R2DBC
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
