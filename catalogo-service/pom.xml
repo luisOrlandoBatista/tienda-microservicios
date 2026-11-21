@@ -97,6 +97,19 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Resource Server: validar JWT emitidos por auth-service -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
+		</dependency>
+
+		<!-- Utilidades para simular usuarios y tokens en los tests -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<!-- ArchUnit: tests que comprueban la arquitectura -->
 		<dependency>
 			<groupId>com.tngtech.archunit</groupId>

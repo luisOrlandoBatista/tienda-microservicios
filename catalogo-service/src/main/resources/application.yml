@@ -15,6 +15,15 @@ spring:
       ddl-auto: validate          # Hibernate NO crea tablas: solo comprueba que coinciden
     open-in-view: false           # buena práctica: la sesión de BD no llega hasta el controlador
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8083/.well-known/jwks.json   # dónde descargar la clave PÚBLICA
+          issuer-uri: http://localhost:8083                           # solo acepta tokens de este emisor
+          authorities-claim-name: roles                               # los permisos están en el claim "roles"
+          authority-prefix: ROLE_                                     # "ADMIN" → "ROLE_ADMIN"
+
 logging:
   level:
     org.hibernate.SQL: debug      # muestra en consola las SQL que ejecuta Hibernate
