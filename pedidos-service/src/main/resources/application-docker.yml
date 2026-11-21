@@ -1,0 +1,13 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://pedidos-db:5432/pedidos
+  flyway:
+    url: jdbc:postgresql://pedidos-db:5432/pedidos
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://auth-service:8083/.well-known/jwks.json
+
+catalogo:
+  url: http://catalogo-service:8081

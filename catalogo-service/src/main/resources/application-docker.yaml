@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://catalogo-db:5432/catalogo
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://auth-service:8083/.well-known/jwks.json
