@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
+import org.springframework.security.oauth2.server.resource.web.reactive.function.client.ServerBearerExchangeFilterFunction;
 
 import java.time.Duration;
 import java.util.Map;
@@ -21,7 +22,10 @@ public class CatalogoWebClientAdapter implements CatalogoPort {
     private final WebClient webClient;
 
     public CatalogoWebClientAdapter(WebClient.Builder builder, @Value("${catalogo.url}") String catalogoUrl) {
-        this.webClient = builder.baseUrl(catalogoUrl).build();
+        this.webClient = builder
+                .baseUrl(catalogoUrl)
+                .filter(new ServerBearerExchangeFilterFunction())   // ← NUEVO: reenvía el token del usuario
+                .build();
     }
 
     @Override

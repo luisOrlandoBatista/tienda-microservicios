@@ -19,6 +19,16 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
+import com.tienda.pedidos.infrastructure.config.SecurityConfig;
+import org.mockito.ArgumentCaptor;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockJwt;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -27,6 +37,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @WebFluxTest(PedidoController.class)
+@Import(SecurityConfig.class)
 class PedidoControllerTest {
 
     @Autowired
@@ -35,9 +46,17 @@ class PedidoControllerTest {
     @MockitoBean private CrearPedidoUseCase crearPedidoUseCase;
     @MockitoBean private ConsultarPedidoUseCase consultarPedidoUseCase;
     @MockitoBean private CancelarPedidoUseCase cancelarPedidoUseCase;
+    @MockitoBean private ReactiveJwtDecoder jwtDecoder;   // evita descargar claves de auth-service
+
+    /** Un WebTestClient que actúa como si "luis" hubiera hecho login. */
+    private WebTestClient comoLuis() {
+        return webTestClient.mutateWith(mockJwt()
+                .jwt(jwt -> jwt.subject("luis"))
+                .authorities(new SimpleGrantedAuthority("ROLE_USER")));
+    }
 
     private static final String PEDIDO_VALIDO = """
-            {"cliente": "luis", "lineas": [{"productoId": 1, "cantidad": 2}]}
+            {"lineas": [{"productoId": 1, "cantidad": 2}]}
             """;
 
     @Test
@@ -47,7 +66,7 @@ class PedidoControllerTest {
                 EstadoPedido.CONFIRMADO, Instant.now());
         when(crearPedidoUseCase.crear(any(CrearPedidoCommand.class))).thenReturn(Mono.just(pedido));
 
-        webTestClient.post().uri("/api/pedidos")
+        comoLuis().post().uri("/api/pedidos")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(PEDIDO_VALIDO)
                 .exchange()
@@ -57,19 +76,22 @@ class PedidoControllerTest {
                 .jsonPath("$.id").isEqualTo(7)
                 .jsonPath("$.estado").isEqualTo("CONFIRMADO")
                 .jsonPath("$.lineas[0].nombreProducto").isEqualTo("Teclado");
+
+        ArgumentCaptor<CrearPedidoCommand> command = ArgumentCaptor.forClass(CrearPedidoCommand.class);
+        verify(crearPedidoUseCase).crear(command.capture());
+        assertThat(command.getValue().cliente()).isEqualTo("luis");   // ¡el cliente viene del TOKEN!
     }
 
     @Test
     void crear_con_datos_invalidos_devuelve_400_con_los_campos() {
-        webTestClient.post().uri("/api/pedidos")
+        comoLuis().post().uri("/api/pedidos")
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue("""
-                        {"cliente": "", "lineas": []}
+                                .bodyValue("""
+                        {"lineas": []}
                         """)
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody()
-                .jsonPath("$.errores.cliente").exists()
                 .jsonPath("$.errores.lineas").exists();
     }
 
@@ -78,7 +100,7 @@ class PedidoControllerTest {
         when(crearPedidoUseCase.crear(any()))
                 .thenReturn(Mono.error(new ProductoNoDisponibleException(1L, "stock insuficiente")));
 
-        webTestClient.post().uri("/api/pedidos")
+        comoLuis().post().uri("/api/pedidos")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(PEDIDO_VALIDO)
                 .exchange()
@@ -90,7 +112,7 @@ class PedidoControllerTest {
         when(crearPedidoUseCase.crear(any()))
                 .thenReturn(Mono.error(new CatalogoNoDisponibleException("caído", new RuntimeException())));
 
-        webTestClient.post().uri("/api/pedidos")
+        comoLuis().post().uri("/api/pedidos")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(PEDIDO_VALIDO)
                 .exchange()
@@ -104,8 +126,24 @@ class PedidoControllerTest {
         when(consultarPedidoUseCase.obtenerPorId(99L))
                 .thenReturn(Mono.error(new PedidoNoEncontradoException(99L)));
 
-        webTestClient.get().uri("/api/pedidos/99")
+        comoLuis().get().uri("/api/pedidos/99")
                 .exchange()
                 .expectStatus().isNotFound();
+    }
+
+    @Test
+    void crear_sin_token_devuelve_401() {
+        webTestClient.post().uri("/api/pedidos")          // sin comoLuis(): no hay token
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(PEDIDO_VALIDO)
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    void listar_todos_los_pedidos_con_un_usuario_normal_devuelve_403() {
+        comoLuis().get().uri("/api/pedidos")
+                .exchange()
+                .expectStatus().isForbidden();
     }
 }

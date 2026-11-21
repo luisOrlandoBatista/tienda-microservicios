@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+
 
 import java.net.URI;
 
@@ -36,8 +39,10 @@ public class PedidoController {
     }
 
     @PostMapping
-    public Mono<ResponseEntity<PedidoResponse>> crear(@Valid @RequestBody CrearPedidoRequest request) {
-        return crearPedidoUseCase.crear(PedidoWebMapper.toCommand(request))
+    public Mono<ResponseEntity<PedidoResponse>> crear(@Valid @RequestBody CrearPedidoRequest request,
+                                                      @AuthenticationPrincipal Jwt jwt) {
+        String cliente = jwt.getSubject();     // "sub" del token = el usuario que ha hecho login
+        return crearPedidoUseCase.crear(PedidoWebMapper.toCommand(request, cliente))
                 .map(pedido -> ResponseEntity
                         .created(URI.create("/api/pedidos/" + pedido.getId()))
                         .body(PedidoWebMapper.toResponse(pedido)));

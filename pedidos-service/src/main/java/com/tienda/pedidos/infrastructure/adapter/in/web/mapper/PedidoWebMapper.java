@@ -10,9 +10,9 @@ public final class PedidoWebMapper {
     private PedidoWebMapper() {
     }
 
-    public static CrearPedidoCommand toCommand(CrearPedidoRequest request) {
+    public static CrearPedidoCommand toCommand(CrearPedidoRequest request, String cliente) {
         return new CrearPedidoCommand(
-                request.cliente(),
+                cliente,
                 request.lineas().stream()
                         .map(l -> new CrearPedidoCommand.LineaCommand(l.productoId(), l.cantidad()))
                         .toList());
