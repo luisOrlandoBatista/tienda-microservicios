@@ -114,7 +114,20 @@ services:
       pedidos-service:
         condition: service_started
 
+  
+  sonarqube:
+    image: sonarqube:community
+    container_name: tienda-sonarqube
+    profiles: ["calidad"]
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+      - sonarqube-extensions:/opt/sonarqube/extensions
+
 volumes:
   auth-db-data:
   catalogo-db-data:
   pedidos-db-data:
+  sonarqube-data:
+  sonarqube-extensions:
